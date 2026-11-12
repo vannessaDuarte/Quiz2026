@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block contenido %}
+<h1 class="h3 mb-3">Reporte de facturación</h1>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Documentos</div><div class="fs-3">{{ resumen.cantidad }}</div><div class="small">{{ resumen.boletas }} boletas · {{ resumen.facturas }} facturas</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Total facturado</div><div class="fs-3">{{ resumen.total|clp }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Descuentos otorgados</div><div class="fs-3">{{ resumen.descuentos|clp }}</div></div></div></div>
+</div>
+<h2 class="h5">Por mes</h2>
+<div class="table-responsive"><table class="table bg-white">
+  <thead><tr><th>Mes</th><th class="text-end">Documentos</th><th class="text-end">Neto</th><th class="text-end">Descuentos</th><th class="text-end">Total con IVA</th></tr></thead>
+  <tbody>
+  {% for mes, d in meses %}
+    <tr><td>{{ mes }}</td><td class="text-end">{{ d.cantidad }}</td><td class="text-end">{{ d.neto|clp }}</td><td class="text-end">{{ d.descuentos|clp }}</td><td class="text-end">{{ d.total|clp }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="text-muted">Sin datos.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block contenido %}
+<h1 class="h3 mb-3">Reporte de repuestos</h1>
+{% if bajos %}
+<div class="alert alert-danger"><strong>Stock bajo:</strong>
+  {% for r in bajos %}{{ r.nombre }} ({{ r.stock }}){% if not forloop.last %}, {% endif %}{% endfor %}</div>
+{% endif %}
+<div class="table-responsive"><table class="table bg-white align-middle">
+  <thead><tr><th>Repuesto</th><th>Proveedor</th><th class="text-end">Veces usado (unidades)</th><th class="text-end">Existencia</th><th class="text-end">Mínimo</th><th class="text-end">Precio</th></tr></thead>
+  <tbody>
+  {% for r in repuestos %}
+    <tr><td><a href="{% url 'taller:repuesto_detalle' r.pk %}">{{ r.nombre }}</a></td><td>{{ r.proveedor|default:"—" }}</td>
+        <td class="text-end">{{ r.usado }}</td>
+        <td class="text-end">{{ r.stock }} {% if r.bajo_stock %}<span class="badge text-bg-danger">Bajo</span>{% endif %}</td>
+        <td class="text-end">{{ r.stock_minimo }}</td><td class="text-end">{{ r.precio|clp }}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+<p class="text-muted small">Ordenado de más a menos usado.</p>
+{% endblock %}

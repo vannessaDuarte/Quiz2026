@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block contenido %}
+<a href="{% url 'clientes:lista' %}">&larr; Clientes</a>
+<h1 class="h3 mt-2">{{ cliente.nombre }}</h1>
+<p class="text-muted">RUT {{ cliente.rut }} · {{ cliente.telefono|default:"sin teléfono" }} · {{ cliente.email|default:"sin correo" }}</p>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h2 class="h5 mb-0">Vehículos</h2>
+  <a class="btn btn-primary btn-sm" href="{% url 'clientes:vehiculo_nuevo' cliente.pk %}">+ Agregar vehículo</a>
+</div>
+<div class="table-responsive"><table class="table bg-white">
+  <thead><tr><th>Patente</th><th>Vehículo</th><th>Año</th><th></th></tr></thead>
+  <tbody>
+  {% for v in vehiculos %}
+    <tr><td><a href="{% url 'clientes:vehiculo_detalle' v.pk %}">{{ v.patente }}</a></td><td>{{ v.marca }} {{ v.modelo }} {{ v.color }}</td><td>{{ v.anio|default:"" }}</td>
+        <td><a class="btn btn-sm btn-success" href="{% url 'ordenes:nueva' %}?vehiculo={{ v.pk }}">Crear orden</a></td></tr>
+  {% empty %}<tr><td colspan="4" class="text-muted">Sin vehículos registrados.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

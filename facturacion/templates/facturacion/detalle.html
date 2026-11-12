@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block contenido %}
+<a href="{% url 'ordenes:detalle' orden.pk %}">&larr; Orden #{{ orden.pk }}</a>
+<div class="row justify-content-center mt-2"><div class="col-lg-7">
+  <div class="card"><div class="card-body">
+    <h1 class="h4">{{ f }}</h1>
+    <p class="text-muted">{{ f.fecha|date:"d/m/Y H:i" }} · {{ orden.cliente.nombre }} · {{ orden.vehiculo }}</p>
+    <table class="table table-sm">
+      <tbody>
+      {% for d in orden.repuestos.all %}<tr><td>{{ d.cantidad }} × {{ d.repuesto.nombre }}</td><td class="text-end">{{ d.subtotal|clp }}</td></tr>{% endfor %}
+      {% for m in orden.mano_obra.all %}<tr><td>{{ m.descripcion }} ({{ m.horas }} h)</td><td class="text-end">{{ m.subtotal|clp }}</td></tr>{% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><td>Neto</td><td class="text-end">{{ f.neto|clp }}</td></tr>
+        {% if f.descuento_pct %}<tr><td>Descuento ({{ f.descuento_pct }}%)</td><td class="text-end">-{{ f.monto_descuento|clp }}</td></tr>{% endif %}
+        <tr><td>IVA (19%)</td><td class="text-end">{{ f.iva|clp }}</td></tr>
+        <tr class="fw-bold fs-5"><td>Total</td><td class="text-end">{{ f.total|clp }}</td></tr>
+      </tfoot>
+    </table>
+  </div></div>
+  {% if form %}
+  <div class="card mt-3"><div class="card-body">
+    <h2 class="h6">Descuento / tipo de documento (administrador)</h2>
+    <form method="post" action="{% url 'facturacion:descuento' f.pk %}">{% csrf_token %}
+      {% include 'core/_campos.html' %}
+      <button class="btn btn-primary">Aplicar</button></form>
+  </div></div>
+  {% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'core/base.html' %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Clientes</h1>
+  <a class="btn btn-primary" href="{% url 'clientes:nuevo' %}">+ Nuevo cliente</a>
+</div>
+<form class="mb-3"><div class="input-group"><input name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre o RUT"><button class="btn btn-outline-secondary">Buscar</button></div></form>
+<div class="table-responsive"><table class="table table-hover bg-white">
+  <thead><tr><th>Nombre</th><th>RUT</th><th>Teléfono</th><th>Vehículos</th><th></th></tr></thead>
+  <tbody>
+  {% for c in clientes %}
+    <tr><td>{{ c.nombre }}</td><td>{{ c.rut }}</td><td>{{ c.telefono }}</td><td>{{ c.n_vehiculos }}</td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'clientes:detalle' c.pk %}">Ver</a></td></tr>
+  {% empty %}<tr><td colspan="5" class="text-muted">Sin clientes.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

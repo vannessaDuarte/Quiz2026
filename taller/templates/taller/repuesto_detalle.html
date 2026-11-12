@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block contenido %}
+<a href="{% url 'taller:repuestos' %}">&larr; Repuestos</a>
+<div class="d-flex justify-content-between align-items-start mt-2">
+  <div>
+    <h1 class="h3 mb-1">{{ r.nombre }}</h1>
+    <p class="text-muted">Código {{ r.codigo }} · Proveedor: {{ r.proveedor|default:"—" }} · Precio {{ r.precio|clp }}</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'taller:repuesto_editar' r.pk %}">Editar / ajustar stock</a>
+</div>
+<p>Stock: <strong>{{ r.stock }}</strong> (mínimo {{ r.stock_minimo }}) {% if r.bajo_stock %}<span class="badge text-bg-danger">Stock bajo</span>{% endif %} · Total usado: <strong>{{ total_usado }}</strong></p>
+<h2 class="h5">Historial de uso</h2>
+<div class="table-responsive"><table class="table bg-white">
+  <thead><tr><th>Orden</th><th>Vehículo</th><th>Fecha</th><th class="text-end">Cantidad</th></tr></thead>
+  <tbody>
+  {% for u in usos %}<tr><td><a href="{% url 'ordenes:detalle' u.orden_id %}">#{{ u.orden_id }}</a></td><td>{{ u.orden.vehiculo.patente }}</td><td>{{ u.creado|date:"d/m/Y H:i" }}</td><td class="text-end">{{ u.cantidad }}</td></tr>
+  {% empty %}<tr><td colspan="4" class="text-muted">Aún no se ha usado.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

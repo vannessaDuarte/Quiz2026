@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">{% if rol == 'cliente' or rol == 'mecanico' %}Mis órdenes{% else %}Órdenes de trabajo{% endif %}</h1>
+  {% if rol == 'admin' or rol == 'recepcion' %}<a class="btn btn-primary" href="{% url 'ordenes:nueva' %}">+ Nueva orden</a>{% endif %}
+</div>
+<form class="mb-3"><div class="input-group" style="max-width:420px">
+  <select name="estado" class="form-select" onchange="this.form.submit()">
+    <option value="">Todos los estados</option>
+    {% for v, l in estados %}<option value="{{ v }}" {% if v == estado_sel %}selected{% endif %}>{{ l }}</option>{% endfor %}
+  </select></div></form>
+
+{% if rol == 'mecanico' %}
+  <div class="row g-3">
+  {% for o in ordenes %}
+    <div class="col-12 col-md-6">
+      <a class="tarjeta-orden" href="{% url 'ordenes:detalle' o.pk %}">
+        <div class="card"><div class="card-body">
+          <div class="d-flex justify-content-between"><span class="fs-4 fw-bold">{{ o.vehiculo.patente }}</span>
+            <span class="badge text-bg-{{ o.color }} fs-6 align-self-start">{{ o.get_estado_display }}</span></div>
+          <div class="text-muted">{{ o.vehiculo.marca }} {{ o.vehiculo.modelo }} · Orden #{{ o.pk }}</div>
+          <div class="mt-2">{{ o.problema|truncatechars:90 }}</div>
+        </div></div>
+      </a>
+    </div>
+  {% empty %}<p class="text-muted">No tienes órdenes asignadas.</p>{% endfor %}
+  </div>
+{% else %}
+  <div class="table-responsive"><table class="table table-hover bg-white align-middle">
+    <thead><tr><th>#</th><th>Fecha</th><th>Vehículo</th>{% if rol != 'cliente' %}<th>Cliente</th>{% endif %}<th>Mecánico</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for o in ordenes %}
+      <tr><td>{{ o.pk }}</td><td>{{ o.fecha_recepcion|date:"d/m/Y H:i" }}</td><td>{{ o.vehiculo.patente }}</td>
+          {% if rol != 'cliente' %}<td>{{ o.vehiculo.cliente.nombre }}</td>{% endif %}
+          <td>{{ o.mecanico|default:"—" }}</td>
+          <td><span class="badge text-bg-{{ o.color }}">{{ o.get_estado_display }}</span></td>
+          <td><a class="btn btn-sm btn-outline-primary" href="{% url 'ordenes:detalle' o.pk %}">Ver</a></td></tr>
+    {% empty %}<tr><td colspan="7" class="text-muted">No hay órdenes.</td></tr>{% endfor %}
+    </tbody></table></div>
+{% endif %}
+{% endblock %}

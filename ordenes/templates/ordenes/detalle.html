@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% load formato %}
+{% block bodyclass %}{% if siguiente %}con-barra{% endif %}{% endblock %}
+{% block contenido %}
+<a href="{% url 'ordenes:lista' %}">&larr; Órdenes</a>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">Orden #{{ orden.pk }} — {{ orden.vehiculo.patente }}</h1>
+    <div class="text-muted">{{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} · {{ orden.cliente.nombre }}</div>
+  </div>
+  <span class="badge text-bg-{{ orden.color }} fs-6">{{ orden.get_estado_display }}</span>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">Recepción</h2>
+      <p class="mb-1"><strong>Fecha:</strong> {{ orden.fecha_recepcion|date:"d/m/Y H:i" }}</p>
+      <p class="mb-1"><strong>Mecánico:</strong> {{ orden.mecanico|default:"sin asignar" }}</p>
+      <p class="mb-0"><strong>Problema:</strong> {{ orden.problema }}</p>
+    </div></div>
+
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">Diagnóstico</h2>
+      {% if diag_form %}
+        <form method="post" action="{% url 'ordenes:diagnostico' orden.pk %}">{% csrf_token %}
+          {% include 'core/_campos.html' with form=diag_form %}
+          <button class="btn btn-primary">Guardar diagnóstico</button></form>
+      {% else %}
+        <p class="mb-0">{{ orden.diagnostico|default:"Aún sin diagnóstico." }}</p>
+      {% endif %}
+    </div></div>
+
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">Repuestos</h2>
+      <div class="table-responsive"><table class="table table-sm mb-3">
+        <thead><tr><th>Repuesto</th><th class="text-end">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+        {% for d in repuestos %}<tr><td>{{ d.repuesto.nombre }}</td><td class="text-end">{{ d.cantidad }}</td><td class="text-end">{{ d.precio_unitario|clp }}</td><td class="text-end">{{ d.subtotal|clp }}</td></tr>
+        {% empty %}<tr><td colspan="4" class="text-muted">Sin repuestos.</td></tr>{% endfor %}
+        </tbody></table></div>
+      {% if repuesto_form %}
+        <form method="post" action="{% url 'ordenes:repuesto' orden.pk %}" class="row g-2 align-items-end">{% csrf_token %}
+          <div class="col-sm-7">{{ repuesto_form.repuesto }}</div>
+          <div class="col-sm-3">{{ repuesto_form.cantidad }}</div>
+          <div class="col-sm-2 d-grid"><button class="btn btn-outline-primary">Agregar</button></div>
+        </form>
+        <div class="form-text">Al agregarlo se descuenta del stock automáticamente.</div>
+      {% endif %}
+    </div></div>
+
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">Mano de obra</h2>
+      <div class="table-responsive"><table class="table table-sm mb-3">
+        <thead><tr><th>Trabajo</th><th class="text-end">Horas</th><th class="text-end">Valor/h</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+        {% for m in mano_obra %}<tr><td>{{ m.descripcion }}</td><td class="text-end">{{ m.horas }}</td><td class="text-end">{{ m.valor_hora|clp }}</td><td class="text-end">{{ m.subtotal|clp }}</td></tr>
+        {% empty %}<tr><td colspan="4" class="text-muted">Sin mano de obra.</td></tr>{% endfor %}
+        </tbody></table></div>
+      {% if mano_form %}
+        <form method="post" action="{% url 'ordenes:mano_obra' orden.pk %}" class="row g-2 align-items-end">{% csrf_token %}
+          <div class="col-sm-5">{{ mano_form.descripcion }}</div>
+          <div class="col-sm-2">{{ mano_form.horas }}</div>
+          <div class="col-sm-3">{{ mano_form.valor_hora }}</div>
+          <div class="col-sm-2 d-grid"><button class="btn btn-outline-primary">Agregar</button></div>
+        </form>
+        <div class="form-text">Campos: descripción · horas · valor por hora (CLP).</div>
+      {% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">Resumen</h2>
+      <div class="d-flex justify-content-between"><span>Repuestos</span><span>{{ orden.total_repuestos|clp }}</span></div>
+      <div class="d-flex justify-content-between"><span>Mano de obra</span><span>{{ orden.total_mano_obra|clp }}</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fw-bold"><span>Total neto</span><span>{{ orden.neto|clp }}</span></div>
+      {% if factura and rol != 'mecanico' %}
+        <a class="btn btn-outline-success w-100 mt-3" href="{% url 'facturacion:detalle' factura.pk %}">Ver {{ factura }}</a>
+      {% endif %}
+    </div></div>
+
+    {# ---- Acciones por rol ---- #}
+    {% if rol == 'mecanico' and orden.estado == 'diagnostico' %}
+    <div class="card mb-3 border-primary"><div class="card-body">
+      <h2 class="h6">Enviar al cliente</h2>
+      <p class="small text-muted">Cuando termines diagnóstico, repuestos y mano de obra, envía el detalle al cliente.</p>
+      <form method="post" action="{% url 'ordenes:enviar' orden.pk %}">{% csrf_token %}<button class="btn btn-primary w-100">Enviar orden al cliente</button></form>
+    </div></div>
+    {% endif %}
+
+    {% if rol == 'cliente' and orden.estado == 'esperando_aprobacion' %}
+    <div class="card mb-3 border-warning"><div class="card-body">
+      <h2 class="h6">Tu decisión</h2>
+      <p class="small text-muted">Revisa el detalle y decide si aprobar el trabajo.</p>
+      <form method="post" action="{% url 'ordenes:decidir' orden.pk %}" class="d-flex gap-2">{% csrf_token %}
+        <button name="decision" value="aprobar" class="btn btn-success flex-fill">Aprobar</button>
+        <button name="decision" value="rechazar" class="btn btn-outline-danger flex-fill">Rechazar</button>
+      </form>
+    </div></div>
+    {% endif %}
+
+    {% if rol == 'recepcion' and orden.estado == 'aprobada' %}
+    <div class="card mb-3 border-success"><div class="card-body">
+      <h2 class="h6">Cliente aprobó la orden</h2>
+      <form method="post" action="{% url 'ordenes:generar_reparacion' orden.pk %}">{% csrf_token %}
+        <button class="btn btn-success w-100">Generar orden de reparación y avisar al administrador</button></form>
+    </div></div>
+    {% endif %}
+
+    {% if asignar_form %}
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6">{% if orden.mecanico %}Reasignar mecánico{% else %}Asignar mecánico{% endif %}</h2>
+      {% if mecanico_ocupado %}<div class="alert alert-warning py-2 small">El mecánico asignado ya no está libre. Puedes reasignar la orden.</div>{% endif %}
+      {% if hay_libres %}
+        <form method="post" action="{% url 'ordenes:asignar' orden.pk %}">{% csrf_token %}
+          <div class="mb-2">{{ asignar_form.mecanico }}</div>
+          <button class="btn btn-primary w-100">{% if orden.mecanico %}Reasignar{% else %}Asignar{% endif %}</button></form>
+      {% else %}<p class="small text-muted mb-0">No hay mecánicos libres en este momento.</p>{% endif %}
+    </div></div>
+    {% endif %}
+
+    {% if rol == 'admin' %}
+    <form method="post" action="{% url 'ordenes:eliminar' orden.pk %}" onsubmit="return confirm('¿Eliminar la orden #{{ orden.pk }}? No se puede deshacer.')">{% csrf_token %}
+      <button class="btn btn-outline-danger w-100">Eliminar orden</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block barra %}
+{% if siguiente %}
+<div class="barra-inferior">
+  <form method="post" action="{% url 'ordenes:cambiar_estado' orden.pk %}">{% csrf_token %}
+    <input type="hidden" name="estado" value="{{ siguiente.0 }}">
+    <button class="btn btn-success btn-grande">Cambiar a: {{ siguiente.1 }}</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

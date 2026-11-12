@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% block contenido %}
+<a href="{% url 'taller:mecanicos' %}">&larr; Mecánicos</a>
+<h1 class="h3 mt-2">{{ m.nombre }}</h1>
+<p>{% if m.libre %}<span class="badge text-bg-success">Libre</span>{% else %}<span class="badge text-bg-warning">Ocupado / inactivo</span>{% endif %}</p>
+<div class="table-responsive"><table class="table bg-white">
+  <thead><tr><th>#</th><th>Fecha</th><th>Vehículo</th><th>Cliente</th><th>Estado</th></tr></thead>
+  <tbody>
+  {% for o in ordenes %}
+    <tr><td><a href="{% url 'ordenes:detalle' o.pk %}">{{ o.pk }}</a></td><td>{{ o.fecha_recepcion|date:"d/m/Y" }}</td><td>{{ o.vehiculo.patente }}</td><td>{{ o.vehiculo.cliente.nombre }}</td>
+        <td><span class="badge text-bg-{{ o.color }}">{{ o.get_estado_display }}</span></td></tr>
+  {% empty %}<tr><td colspan="5" class="text-muted">Sin órdenes asignadas.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

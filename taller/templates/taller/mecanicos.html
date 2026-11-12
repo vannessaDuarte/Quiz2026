@@ -1,0 +1,17 @@
+{% extends 'core/base.html' %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Mecánicos</h1>
+  <a class="btn btn-primary" href="{% url 'taller:mecanico_nuevo' %}">+ Nuevo mecánico</a>
+</div>
+<div class="table-responsive"><table class="table table-hover bg-white align-middle">
+  <thead><tr><th>Nombre</th><th>Teléfono</th><th>Disponibilidad</th><th>Órdenes</th><th></th></tr></thead>
+  <tbody>
+  {% for m, libre in mecanicos %}
+    <tr><td>{{ m.nombre }}</td><td>{{ m.telefono }}</td>
+        <td>{% if not m.activo %}<span class="badge text-bg-secondary">Inactivo</span>{% elif libre %}<span class="badge text-bg-success">Libre</span>{% else %}<span class="badge text-bg-warning">Ocupado</span>{% endif %}</td>
+        <td>{{ m.n_ordenes }}</td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'taller:mecanico_detalle' m.pk %}">Ver órdenes</a></td></tr>
+  {% empty %}<tr><td colspan="5" class="text-muted">Sin mecánicos.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

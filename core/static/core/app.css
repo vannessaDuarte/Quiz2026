@@ -1,0 +1,9 @@
+body { background: #f5f6f8; }
+.barra-inferior {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1030;
+  padding: .75rem; background: #fff; border-top: 2px solid #dee2e6;
+}
+body.con-barra { padding-bottom: 9rem; }
+.btn-grande { padding: 1.4rem 1rem; font-size: 1.6rem; font-weight: 600; width: 100%; }
+.tarjeta-orden { text-decoration: none; color: inherit; }
+.tarjeta-orden:hover .card { border-color: #0d6efd; }
